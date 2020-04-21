@@ -10,7 +10,7 @@ import {
 
 const width = Dimensions.get("window");
 
-const NUMBER_OF_ROWS = 20;
+const NUMBER_OF_ROWS = 22;
 enum DIRECTIONS {
   up = "UP",
   down = "DOWN",
@@ -55,23 +55,45 @@ const getNextSnakePosition: (
   }
 };
 
-const App = ({ snakeColor = "orange" }) => {
-  const [snakePosition, setSnakePosition] = useState<[number, number]>([2, 2]);
+const App = ({ snakeColor = "orange", foodColor = "yellow" }) => {
+  const [snakePosition, setSnakePosition] = useState<coordinatesType>([2, 2]);
   const [direction, setDirection] = useState<DIRECTIONS>(DIRECTIONS.right);
   const [speed, setSpeed] = useState<number>(1);
+  const [foodPosition, setFoodPosition] = useState<coordinatesType>([10, 2]);
 
   useEffect(() => {
     const intervalDuration = 200 / (speed / 2);
 
     const interval = setInterval(() => {
-      const nextSnakePosition = getNextSnakePosition(snakePosition, direction);
-      setSnakePosition(nextSnakePosition);
+      updateSnakePosition(snakePosition, direction);
     }, intervalDuration);
 
     return () => {
       clearInterval(interval);
     };
   });
+  // 0 - 1 => 0 - 25
+  useEffect(() => {
+    updateSnakePosition(snakePosition, direction);
+  }, [direction]);
+
+  useEffect(() => {
+    if (areSamePositions(snakePosition, foodPosition)) {
+      setFoodPosition([Math.floor(Math.random() * (NUMBER_OF_ROWS - 1)), Math.floor((Math.random() * (NUMBER_OF_ROWS - 1)))]);
+    }
+  }, [snakePosition, foodPosition]);
+
+  const areSamePositions: (a: coordinatesType, b: coordinatesType) => boolean = (a, b) => {
+    return a[0] === b[0] && a[1] === b[1];
+  }
+
+  const updateSnakePosition: (
+    snakePosition: coordinatesType,
+    direction: DIRECTIONS
+  ) => void = (snakePosition, direction) => {
+    const nextSnakePosition = getNextSnakePosition(snakePosition, direction);
+    setSnakePosition(nextSnakePosition);
+  };
 
   const handleDirectionChange: (nextDirection: DIRECTIONS) => void = (
     nextDirection
@@ -92,8 +114,13 @@ const App = ({ snakeColor = "orange" }) => {
   };
 
   const oneDArray = new Array(NUMBER_OF_ROWS).fill(null);
-  const colorCell = (x: number, y: number) =>
+
+  const isSnakeOnCoordinates = (x: number, y: number) =>
     snakePosition[0] === x && snakePosition[1] === y;
+
+  const isFoodOnCoordinates = (x: number, y: number) =>
+    foodPosition[0] === x && foodPosition[1] === y;
+
 
   return (
     <View style={styles.container}>
@@ -109,8 +136,11 @@ const App = ({ snakeColor = "orange" }) => {
                     key={`column-${columnIndex}`}
                     style={[
                       { flex: 1, borderWidth: 1, borderColor: "#e2e2e2" },
-                      colorCell(rowIndex, columnIndex)
+                      isSnakeOnCoordinates(rowIndex, columnIndex)
                         ? { backgroundColor: snakeColor }
+                        : {},
+                      isFoodOnCoordinates(rowIndex, columnIndex)
+                        ? { backgroundColor: foodColor }
                         : {},
                     ]}
                   ></View>
@@ -188,8 +218,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   controlButton: {
-    height: 60,
-    width: 60,
+    height: 80,
+    width: 200,
     alignItems: "center",
     justifyContent: "center",
   },
