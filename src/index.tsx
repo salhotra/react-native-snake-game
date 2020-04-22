@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Dimensions,
@@ -57,12 +57,14 @@ const getNextSnakePosition: (
 
 const App = ({ snakeColor = "orange", foodColor = "yellow" }) => {
   const [snakePosition, setSnakePosition] = useState<coordinatesType>([2, 2]);
+  const [snakeLength, setSnakeLength] = useState<number>(1);
   const [direction, setDirection] = useState<DIRECTIONS>(DIRECTIONS.right);
   const [speed, setSpeed] = useState<number>(1);
   const [foodPosition, setFoodPosition] = useState<coordinatesType>([10, 2]);
+  const [directionChangeCoordinates, setDirectionChangeCoordinates] = useState<coordinatesType>([2, 2]);
 
   useEffect(() => {
-    const intervalDuration = 200 / (speed / 2);
+    const intervalDuration = 400 / speed;
 
     const interval = setInterval(() => {
       updateSnakePosition(snakePosition, direction);
@@ -72,20 +74,27 @@ const App = ({ snakeColor = "orange", foodColor = "yellow" }) => {
       clearInterval(interval);
     };
   });
-  // 0 - 1 => 0 - 25
+
   useEffect(() => {
     updateSnakePosition(snakePosition, direction);
   }, [direction]);
 
   useEffect(() => {
     if (areSamePositions(snakePosition, foodPosition)) {
-      setFoodPosition([Math.floor(Math.random() * (NUMBER_OF_ROWS - 1)), Math.floor((Math.random() * (NUMBER_OF_ROWS - 1)))]);
+      setFoodPosition([
+        Math.floor(Math.random() * (NUMBER_OF_ROWS - 1)),
+        Math.floor(Math.random() * (NUMBER_OF_ROWS - 1)),
+      ]);
+      setSnakeLength(snakeLength + 1);
     }
   }, [snakePosition, foodPosition]);
 
-  const areSamePositions: (a: coordinatesType, b: coordinatesType) => boolean = (a, b) => {
+  const areSamePositions: (
+    a: coordinatesType,
+    b: coordinatesType
+  ) => boolean = (a, b) => {
     return a[0] === b[0] && a[1] === b[1];
-  }
+  };
 
   const updateSnakePosition: (
     snakePosition: coordinatesType,
@@ -120,7 +129,6 @@ const App = ({ snakeColor = "orange", foodColor = "yellow" }) => {
 
   const isFoodOnCoordinates = (x: number, y: number) =>
     foodPosition[0] === x && foodPosition[1] === y;
-
 
   return (
     <View style={styles.container}>
