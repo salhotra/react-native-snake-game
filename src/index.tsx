@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Dimensions, StyleSheet, StatusBar } from "react-native";
+import { View, Text, Dimensions, StyleSheet, StatusBar } from "react-native";
 
 import { coordinatesType, DIRECTIONS } from "./types";
 
-import { NUMBER_OF_ROWS, INITIAL_FOOD_POSITION, INITIAL_SNAKE_POSITION } from "./config";
+import {
+  NUMBER_OF_ROWS,
+  INITIAL_FOOD_POSITION,
+  INITIAL_SNAKE_POSITION,
+} from "./config";
 import ControlPad from "./Components/ControlPad";
 import GameBoard from "./Components/GameBoard";
 import Colors from "./colors";
 
 const window = Dimensions.get("window");
-
 
 const getNextSnakePosition: (
   currentPosition: coordinatesType,
@@ -34,6 +37,7 @@ const App = () => {
   const [snakeLength, setSnakeLength] = useState<number>(1);
   const [direction, setDirection] = useState<DIRECTIONS>(DIRECTIONS.right);
   const [foodPosition, setFoodPosition] = useState<coordinatesType>(INITIAL_FOOD_POSITION);
+  const [score, setScore] = useState<number>(0);
   // const [speed, setSpeed] = useState<number>(15);
 
   let interval: number | undefined = useRef().current;
@@ -75,6 +79,7 @@ const App = () => {
         y: Math.floor(Math.random() * (NUMBER_OF_ROWS - 1)),
       });
       setSnakeLength((snakeLength) => snakeLength + 1);
+      setScore((score) => score + 1);
     }
   }, [snakePosition, foodPosition]);
 
@@ -106,7 +111,6 @@ const App = () => {
     });
   };
 
-
   return (
     <View style={styles.container}>
       <View style={{ height: 40 }} />
@@ -125,6 +129,10 @@ const App = () => {
         handlePress={handleDirectionChange}
         containerStyle={styles.controlsContainer}
       />
+
+      <View style={styles.scoreContainer}>
+        <Text style={styles.score}>Score: {score}</Text>
+      </View>
     </View>
   );
 };
@@ -145,6 +153,15 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     backgroundColor: Colors.controlPad,
+  },
+  scoreContainer: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+  },
+  score: {
+    color: "white",
+    fontSize: 18,
   },
 });
 
