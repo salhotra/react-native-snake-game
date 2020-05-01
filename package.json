@@ -1,4 +1,11 @@
 {
+  "name": "react-native-snake-game",
+  "description": "Simple snake game built only using `View` tag in React Native!",
+  "author": {
+    "name": "Nishant Salhotra",
+    "email": "nsalhotrawork@gmail.com",
+    "url": "https://github.com/salhotra"
+  },
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",

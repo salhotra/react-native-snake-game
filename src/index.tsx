@@ -96,7 +96,7 @@ const App = () => {
   }, [snakePosition, foodPosition]);
 
   useEffect(() => {
-    if (isSteppingOnOwnBody(snakePosition, trail.slice(0, trail.length - 2))) {
+    if (!gameOver && isSteppingOnOwnBody(snakePosition, trail.slice(0, trail.length - 2))) {
       setGameOver(true);
 
       Alert.alert(
@@ -106,7 +106,7 @@ const App = () => {
         { cancelable: false }
       );
     }
-  }, [snakePosition, trail]);
+  }, [snakePosition, trail, gameOver]);
 
   const resetGameState = () => {
     setGameOver(false);

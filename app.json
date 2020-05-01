@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "snake-game",
+    "name": "Snake Game",
     "slug": "snake-game",
     "platforms": [
       "ios",
@@ -24,6 +24,7 @@
     "ios": {
       "supportsTablet": true
     },
-    "description": "Snake game 🐍 built using React Native"
+    "description": "Snake game 🐍 built using React Native",
+    "githubUrl": "https://github.com/salhotra/react-native-snake-game"
   }
 }
