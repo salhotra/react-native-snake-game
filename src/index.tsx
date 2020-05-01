@@ -1,5 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Dimensions, StyleSheet, StatusBar } from "react-native";
+import React, { useState, useEffect, useRef, useReducer } from "react";
+import {
+  View,
+  Text,
+  Dimensions,
+  StyleSheet,
+  StatusBar,
+  Alert,
+} from "react-native";
 
 import { coordinatesType, DIRECTIONS } from "./types";
 
@@ -19,9 +26,8 @@ const getNextSnakePosition: (
   direction: DIRECTIONS
 ) => coordinatesType = ({ x, y }, direction) => {
   switch (direction) {
-    case DIRECTIONS.right: {
+    case DIRECTIONS.right:
       return { x: x === NUMBER_OF_ROWS - 1 ? 0 : x + 1, y };
-    }
     case DIRECTIONS.left:
       return { x: x === 0 ? NUMBER_OF_ROWS - 1 : x - 1, y };
     case DIRECTIONS.up:
@@ -33,11 +39,12 @@ const getNextSnakePosition: (
 
 const App = () => {
   const [snakePosition, setSnakePosition] = useState<coordinatesType>(INITIAL_SNAKE_POSITION);
-  const [snakeTrail, setSnakeTrail] = useState<coordinatesType[]>([]);
-  const [snakeLength, setSnakeLength] = useState<number>(1);
+  const [trail, setTrail] = useState<coordinatesType[]>([]);
+  const [length, setLength] = useState<number>(1);
   const [direction, setDirection] = useState<DIRECTIONS>(DIRECTIONS.right);
   const [foodPosition, setFoodPosition] = useState<coordinatesType>(INITIAL_FOOD_POSITION);
   const [score, setScore] = useState<number>(0);
+  const [gameOver, setGameOver] = useState<boolean>(false);
   // const [speed, setSpeed] = useState<number>(15);
 
   let interval: number | undefined = useRef().current;
@@ -48,6 +55,11 @@ const App = () => {
 
   useEffect(() => {
     const intervalDuration = 100;
+
+    if (gameOver) {
+      clearInterval(interval);
+      return;
+    }
 
     // clear interval and change get new position as soon as direction changes
     clearInterval(interval);
@@ -62,15 +74,15 @@ const App = () => {
     }, intervalDuration);
 
     return () => clearInterval(interval);
-  }, [direction]);
+  }, [direction, gameOver]);
 
   useEffect(() => {
-    const updatedSnakeTrail = [...snakeTrail];
-    while (updatedSnakeTrail.length > snakeLength - 1) {
+    const updatedSnakeTrail = [...trail];
+    while (updatedSnakeTrail.length > length - 1) {
       updatedSnakeTrail.shift();
     }
-    setSnakeTrail([...updatedSnakeTrail, snakePosition]);
-  }, [snakeLength, snakePosition]);
+    setTrail([...updatedSnakeTrail, snakePosition]);
+  }, [length, snakePosition]);
 
   useEffect(() => {
     if (areSamePositions(snakePosition, foodPosition)) {
@@ -78,16 +90,48 @@ const App = () => {
         x: Math.floor(Math.random() * (NUMBER_OF_ROWS - 1)),
         y: Math.floor(Math.random() * (NUMBER_OF_ROWS - 1)),
       });
-      setSnakeLength((snakeLength) => snakeLength + 1);
+      setLength((length) => length + 1);
       setScore((score) => score + 1);
     }
   }, [snakePosition, foodPosition]);
+
+  useEffect(() => {
+    if (isSteppingOnOwnBody(snakePosition, trail.slice(0, trail.length - 2))) {
+      setGameOver(true);
+
+      Alert.alert(
+        "Game Over",
+        `\nScore: ${score}\n\nStart New Game ?`,
+        [{ text: "OK", onPress: resetGameState }],
+        { cancelable: false }
+      );
+    }
+  }, [snakePosition, trail]);
+
+  const resetGameState = () => {
+    setGameOver(false);
+    setScore(0);
+    setLength(1);
+    setSnakePosition(INITIAL_SNAKE_POSITION);
+    setFoodPosition(INITIAL_FOOD_POSITION);
+    setTrail([]);
+    setDirection(DIRECTIONS.right);
+  };
+
+  const isSteppingOnOwnBody: (
+    snakePosition: coordinatesType,
+    trail: coordinatesType[]
+  ) => boolean = (snakePosition, trail) => {
+    const snakePositionString = JSON.stringify(snakePosition);
+    const snakeTrailString = JSON.stringify(trail);
+    return snakeTrailString.includes(snakePositionString);
+  };
 
   const areSamePositions: (
     a: coordinatesType,
     b: coordinatesType
   ) => boolean = (a, b) => {
-    return a.x === b.x && a.y === b.y;
+    return JSON.stringify(a) === JSON.stringify(b);
   };
 
   const handleDirectionChange: (nextDirection: DIRECTIONS) => void = (
@@ -118,7 +162,7 @@ const App = () => {
       <GameBoard
         containerStyle={styles.boardContainer}
         snakePosition={snakePosition}
-        snakeTrail={snakeTrail}
+        snakeTrail={trail}
         foodPosition={foodPosition}
         snakeColor={Colors.snake}
         foodColor={Colors.food}
